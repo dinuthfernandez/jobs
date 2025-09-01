@@ -13,8 +13,8 @@ app.use(cors()); // Allow cross-origin requests from frontend
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-        user: 'your-email@gmail.com', // Your Gmail address
-        pass: 'your-app-password'     // App password (not your regular password)
+        user: 'fdodinuth@gmail.com', // Your Gmail address
+        pass: 'cvgt jwog kckt zpcq'     // App password (not your regular password)
     }
 });
 
