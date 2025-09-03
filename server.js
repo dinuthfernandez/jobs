@@ -1,116 +1,135 @@
+// server.js
+// Express backend for JobForSLSG with CORS + email sending
+require('dotenv').config();
 const express = require('express');
-const nodemailer = require('nodemailer');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
+
 const app = express();
-const port = 3000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(express.json());
-app.use(cors({ origin: '*' })); // Allow all origins for development; restrict in production
+// --- CORS ---
+// In production, you can restrict origins to your frontend domain(s).
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl) or any origin.
+    return callback(null, true);
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+}));
 
-// Configure Nodemailer transporter
+// --- JSON parsing ---
+app.use(express.json({ limit: '1mb' }));
+
+// --- Basic rate limiting to avoid abuse ---
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // 60 requests/min per IP
+});
+app.use(limiter);
+
+// --- Health check ---
+app.get('/', (_req, res) => {
+  res.json({ ok: true, service: 'JobForSLSG backend', time: new Date().toISOString() });
+});
+
+// --- Email transport ---
+// Configure SMTP via environment variables on Render dashboard.
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'fdodinuth@gmail.com',
-        pass: 'cvgt jwog kckt zpcq'
-    }
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT || 587),
+  secure: process.env.SMTP_SECURE === 'true', // true for port 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
 });
 
-// Input validation middleware
-const validateApplication = (req, res, next) => {
-    const { name, email, phone, age, gender, address, education, experience, details, date } = req.body;
-    if (!name || !email || !phone || !age || !gender || !address || !education || !experience || !date) {
-        return res.status(400).json({ error: 'All application fields are required' });
-    }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
-    }
-    if (age < 18) {
-        return res.status(400).json({ error: 'Age must be 18 or older' });
-    }
-    next();
-};
+async function sendMail({ subject, html }) {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS || !process.env.TO_EMAIL) {
+    console.warn('Email not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS, TO_EMAIL in environment.');
+    return { ok: false, skipped: true };
+  }
+  const fromEmail = process.env.FROM_EMAIL || process.env.SMTP_USER;
+  await transporter.sendMail({
+    from: fromEmail,
+    to: process.env.TO_EMAIL,
+    subject,
+    html,
+  });
+  return { ok: true };
+}
 
-const validateSupport = (req, res, next) => {
-    const { name, email, message } = req.body;
+// --- Routes ---
+app.post('/send-application', async (req, res) => {
+  try {
+    const { name, email, phone, age, gender, address, education, experience, details, date } = req.body || {};
+    if (!name || !email || !phone) {
+      return res.status(400).json({ ok: false, error: 'Missing required fields (name, email, phone).' });
+    }
+
+    const subject = `New Job Application from ${name}`;
+    const html = `
+      <h2>New Job Application</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Phone:</strong> ${phone}</p>
+      <p><strong>Age:</strong> ${age || ''}</p>
+      <p><strong>Gender:</strong> ${gender || ''}</p>
+      <p><strong>Address:</strong> ${address || ''}</p>
+      <p><strong>Education:</strong> ${education || ''}</p>
+      <p><strong>Experience:</strong> ${experience || ''}</p>
+      <p><strong>Details:</strong> ${details || ''}</p>
+      <p><strong>Applied On:</strong> ${date || new Date().toLocaleString()}</p>
+    `;
+
+    const mailResult = await sendMail({ subject, html });
+    if (mailResult.ok) {
+      return res.json({ ok: true, sent: true });
+    } else if (mailResult.skipped) {
+      return res.status(501).json({ ok: false, error: 'Email not configured on server.' });
+    } else {
+      return res.status(500).json({ ok: false, error: 'Failed to send email.' });
+    }
+  } catch (err) {
+    console.error('send-application error:', err);
+    return res.status(500).json({ ok: false, error: 'Server error.' });
+  }
+});
+
+app.post('/send-support', async (req, res) => {
+  try {
+    const { name, email, message } = req.body || {};
     if (!name || !email || !message) {
-        return res.status(400).json({ error: 'All support fields are required' });
+      return res.status(400).json({ ok: false, error: 'Missing required fields (name, email, message).' });
     }
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-        return res.status(400).json({ error: 'Invalid email format' });
+
+    const subject = `Support Message from ${name}`;
+    const html = `
+      <h2>Support Message</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Message:</strong></p>
+      <p>${String(message).replace(/</g, '&lt;')}</p>
+    `;
+
+    const mailResult = await sendMail({ subject, html });
+    if (mailResult.ok) {
+      return res.json({ ok: true, sent: true });
+    } else if (mailResult.skipped) {
+      return res.status(501).json({ ok: false, error: 'Email not configured on server.' });
+    } else {
+      return res.status(500).json({ ok: false, error: 'Failed to send email.' });
     }
-    next();
-};
-
-// Endpoint for job applications
-app.post('/send-application', validateApplication, async (req, res) => {
-    const { name, email, phone, age, gender, address, education, experience, details, date } = req.body;
-
-    const mailOptions = {
-        from: '"JobForSLSG" <fdodinuth@gmail.com>',
-        to: 'fdodinuth@gmail.com',
-        subject: `New Job Application from ${name}`,
-        text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nAge: ${age}\nGender: ${gender}\nAddress: ${address}\nEducation: ${education}\nExperience: ${experience}\nDetails: ${details}\nApplied On: ${date}`,
-        html: `
-            <h2>New Job Application</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Phone:</strong> ${phone}</p>
-            <p><strong>Age:</strong> ${age}</p>
-            <p><strong>Gender:</strong> ${gender}</p>
-            <p><strong>Address:</strong> ${address}</p>
-            <p><strong>Education:</strong> ${education}</p>
-            <p><strong>Experience:</strong> ${experience}</p>
-            <p><strong>Details:</strong> ${details}</p>
-            <p><strong>Applied On:</strong> ${date}</p>
-        `
-    };
-
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: 'Email sent successfully', response: info.response });
-    } catch (error) {
-        console.error('Error sending application email:', error);
-        res.status(500).json({ error: 'Failed to send email' });
-    }
+  } catch (err) {
+    console.error('send-support error:', err);
+    return res.status(500).json({ ok: false, error: 'Server error.' });
+  }
 });
 
-// Endpoint for support messages
-app.post('/send-support', validateSupport, async (req, res) => {
-    const { name, email, message } = req.body;
-
-    const mailOptions = {
-        from: '"JobForSLSG" <fdodinuth@gmail.com>',
-        to: 'fdodinuth@gmail.com',
-        subject: `Support Request from ${name}`,
-        text: `Name: ${name}\nEmail: ${email}\nMessage: ${message}`,
-        html: `
-            <h2>Support Request</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Message:</strong> ${message}</p>
-        `
-    };
-
-    try {
-        const info = await transporter.sendMail(mailOptions);
-        res.status(200).json({ message: 'Email sent successfully', response: info.response });
-    } catch (error) {
-        console.error('Error sending support email:', error);
-        res.status(500).json({ error: 'Failed to send email' });
-    }
-});
-
-// Serve frontend statically
-app.use(express.static(__dirname));
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Internal server error' });
-});
-
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
+// --- Start server ---
+app.listen(PORT, () => {
+  console.log('Server running on port', PORT);
 });
