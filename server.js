@@ -8,26 +8,19 @@ const nodemailer = require('nodemailer');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ---- In-memory storage for pending orders ----
+let applications = [];
+
 // --- CORS ---
 // In production, you can restrict origins to your frontend domain(s).
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl) or any origin.
-    return callback(null, true);
-  },
+  origin: true, // allow all origins for now
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
 }));
 
 // --- JSON parsing ---
 app.use(express.json({ limit: '1mb' }));
-
-// --- Basic rate limiting to avoid abuse ---
-const limiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 60, // 60 requests/min per IP
-});
-app.use(limiter);
 
 // --- Health check ---
 app.get('/', (_req, res) => {
@@ -69,6 +62,22 @@ app.post('/send-application', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Missing required fields (name, email, phone).' });
     }
 
+    // Save to in-memory list with Pending status
+    const application = {
+      name,
+      email,
+      phone,
+      age,
+      gender,
+      address,
+      education,
+      experience,
+      details,
+      date: date || new Date().toLocaleString(),
+      status: 'Pending',
+    };
+    applications.push(application);
+
     const subject = `New Job Application from ${name}`;
     const html = `
       <h2>New Job Application</h2>
@@ -81,7 +90,7 @@ app.post('/send-application', async (req, res) => {
       <p><strong>Education:</strong> ${education || ''}</p>
       <p><strong>Experience:</strong> ${experience || ''}</p>
       <p><strong>Details:</strong> ${details || ''}</p>
-      <p><strong>Applied On:</strong> ${date || new Date().toLocaleString()}</p>
+      <p><strong>Applied On:</strong> ${application.date}</p>
     `;
 
     const mailResult = await sendMail({ subject, html });
@@ -126,6 +135,11 @@ app.post('/send-support', async (req, res) => {
     console.error('send-support error:', err);
     return res.status(500).json({ ok: false, error: 'Server error.' });
   }
+});
+
+// --- New route to get all pending applications ---
+app.get('/applications', (req, res) => {
+  res.json({ ok: true, applications });
 });
 
 // --- Start server ---
