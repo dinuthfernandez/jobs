@@ -4,387 +4,214 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JobForSLSG - Job Opportunities in Singapore</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #e0e7ff, #f3f4f6);
-            color: #1f2937;
-            line-height: 1.6;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 1.5rem;
-            text-align: center;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-        }
-
-        header img.logo {
-            width: 48px;
-            height: 48px;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            color: #1e3a8a;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin: 0;
-        }
-
-        nav {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        nav a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: #1e3a8a;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            flex: 1;
-        }
-
-        .job-card, .form-card, .orders-card, .reviews-card {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 16px;
-            padding: 2rem;
-            margin-bottom: 2rem;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .job-card h2, .form-card h2, .orders-card h2, .reviews-card h2 {
-            color: #1e3a8a;
-            margin-bottom: 1rem;
-        }
-
-        .job-details p {
-            margin: 0.5rem 0;
-            font-size: 1.1rem;
-        }
-
-        .important-note {
-            background: #fef3c7;
-            padding: 1rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            color: #92400e;
-        }
-
-        form {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        input, textarea, select {
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.8);
-            font-size: 1rem;
-        }
-
-        button {
-            background: #2563eb;
-            color: white;
-            padding: 0.75rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background: #1e3a8a;
-        }
-
-        .contact-info {
-            margin-top: 1rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .contact-info a {
-            color: #2563eb;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .contact-info img {
-            width: 24px;
-            height: 24px;
-        }
-
-        #active-orders {
-            margin-top: 1rem;
-        }
-
-        .order-item {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .review-item {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .review-item p {
-            margin: 0.5rem 0;
-        }
-
-        footer {
-            text-align: center;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 2rem;
-            }
-
-            nav {
-                flex-direction: column;
-                gap: 1rem;
-            }
-
-            .job-card, .form-card, .orders-card, .reviews-card {
-                padding: 1.5rem;
-            }
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
-    <header>
-        <img src="https://img.icons8.com/color/48/briefcase.png" alt="JobForSLSG Logo" class="logo">
-        <h1>JobForSLSG</h1>
-    </header>
-    <nav>
-        <a href="#jobs">Jobs</a>
-        <a href="#apply">Apply</a>
-        <a href="#support">Support</a>
-        <a href="#orders">My Orders</a>
-        <a href="#reviews">Reviews</a>
-    </nav>
-    <div class="container">
-        <section id="jobs" class="job-card">
-            <h2>Warehouse Job Opportunity</h2>
-            <div class="job-details">
-                <p><strong>Position:</strong> Warehouse Staff</p>
-                <p><strong>Shift:</strong> 8:00 PM - 6:00 AM</p>
-                <p><strong>Type:</strong> Permanent</p>
-                <p><strong>Pay:</strong> SGD 11 per hour</p>
-                <p><strong>Eligibility:</strong> Boys and Girls, 18+</p>
-                <p><strong>Salary:</strong> Paid bi-weekly, start tomorrow</p>
-                <div class="important-note">
-                    <p><strong>Note:</strong> A SGD 100 fee for creating a company security card will be deducted from your first salary.</p>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const NavLink = ({ href, children }) => (
+            <a href={href} className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                {children}
+            </a>
+        );
+
+        const JobCard = () => (
+            <section id="jobs" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">Warehouse Job Opportunity</h2>
+                <div className="space-y-2">
+                    <p><strong>Position:</strong> Warehouse Staff</p>
+                    <p><strong>Shift:</strong> 8:00 PM - 6:00 AM</p>
+                    <p><strong>Type:</strong> Permanent</p>
+                    <p><strong>Pay:</strong> SGD 11 per hour</p>
+                    <p><strong>Eligibility:</strong> Boys and Girls, 18+</p>
+                    <p><strong>Salary:</strong> Paid bi-weekly, start tomorrow</p>
+                    <div className="bg-amber-100 p-4 rounded-lg mt-4 text-amber-900">
+                        <p><strong>Note:</strong> A SGD 100 fee for creating a company security card will be deducted from your first salary.</p>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        );
 
-        <section id="apply" class="form-card">
-            <h2>Create Your Profile & Apply</h2>
-            <form id="apply-form">
-                <input type="text" id="name" placeholder="Full Name" required>
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="tel" id="phone" placeholder="Phone Number" required>
-                <input type="number" id="age" placeholder="Age" min="18" required>
-                <select id="gender" required>
-                    <option value="" disabled selected>Select Gender</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                </select>
-                <textarea id="address" placeholder="Address" rows="3" required></textarea>
-                <textarea id="education" placeholder="Education Background" rows="4" required></textarea>
-                <textarea id="experience" placeholder="Work Experience" rows="4" required></textarea>
-                <textarea id="details" placeholder="Additional Details (e.g., availability, skills)" rows="4"></textarea>
-                <button type="submit">Submit Application</button>
-            </form>
-        </section>
-
-        <section id="support" class="form-card">
-            <h2>Contact Support</h2>
-            <form id="support-form">
-                <input type="text" id="support-name" placeholder="Your Name" required>
-                <input type="email" id="support-email" placeholder="Your Email" required>
-                <textarea id="support-message" placeholder="Your Message" rows="4" required></textarea>
-                <button type="submit">Send Message</button>
-            </form>
-            <div class="contact-info">
-                <a href="tel:+94761244231">
-                    <img src="https://img.icons8.com/color/24/phone.png" alt="Phone Icon">
-                    +94 76 124 4231
-                </a>
-                <a href="https://wa.link/eh4ehx" target="_blank">
-                    <img src="https://img.icons8.com/color/24/whatsapp.png" alt="WhatsApp Icon">
-                    Chat on WhatsApp
-                </a>
-            </div>
-        </section>
-
-        <section id="orders" class="orders-card">
-            <h2>My Active Orders</h2>
-            <div id="active-orders"></div>
-        </section>
-
-        <section id="reviews" class="reviews-card">
-            <h2>User Reviews</h2>
-            <div class="review-item">
-                <p><strong>ganga nimashi:</strong> "Great opportunity! The application process was smooth, and I started my warehouse job quickly. The team is supportive."</p>
-                <p>Rating: 5/5</p>
-            </div>
-            <div class="review-item">
-                <p><strong>sithum navod:</strong> "Reliable platform for finding jobs in Singapore. The night shift fits my schedule perfectly, and the pay is fair."</p>
-                <p>Rating: 4.5/5</p>
-            </div>
-            <div class="review-item">
-                <p><strong>sahani maleesha:</strong> "Easy to apply and get updates. The security card fee was transparently handled from my first salary. Highly recommend!"</p>
-                <p>Rating: 5/5</p>
-            </div>
-        </section>
-    </div>
-    <footer>
-        <p>&copy; 2025 JobForSLSG. All rights reserved.</p>
-    </footer>
-
-    <script>
-        // Simulate storing applications in localStorage
-        const applications = JSON.parse(localStorage.getItem('applications')) || [];
-
-        // Display active orders
-        function displayOrders() {
-            const ordersDiv = document.getElementById('active-orders');
-            ordersDiv.innerHTML = '';
-            if (applications.length === 0) {
-                ordersDiv.innerHTML = '<p>No active applications.</p>';
-                return;
-            }
-            applications.forEach(app => {
-                const orderItem = document.createElement('div');
-                orderItem.className = 'order-item';
-                orderItem.innerHTML = `
-                    <p><strong>Name:</strong> ${app.name}</p>
-                    <p><strong>Email:</strong> ${app.email}</p>
-                    <p><strong>Phone:</strong> ${app.phone}</p>
-                    <p><strong>Age:</strong> ${app.age}</p>
-                    <p><strong>Gender:</strong> ${app.gender}</p>
-                    <p><strong>Address:</strong> ${app.address}</p>
-                    <p><strong>Education:</strong> ${app.education}</p>
-                    <p><strong>Experience:</strong> ${app.experience}</p>
-                    <p><strong>Details:</strong> ${app.details}</p>
-                    <p><strong>Applied On:</strong> ${app.date}</p>
-                `;
-                ordersDiv.appendChild(orderItem);
+        const ApplyForm = ({ onSubmit }) => {
+            const [formData, setFormData] = useState({
+                name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: ''
             });
-        }
 
-        // Handle application form submission
-        document.getElementById('apply-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const phone = document.getElementById('phone').value;
-            const age = document.getElementById('age').value;
-            const gender = document.getElementById('gender').value;
-            const address = document.getElementById('address').value;
-            const education = document.getElementById('education').value;
-            const experience = document.getElementById('experience').value;
-            const details = document.getElementById('details').value;
-            const date = new Date().toLocaleString();
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.id]: e.target.value });
+            };
 
-            const application = { name, email, phone, age, gender, address, education, experience, details, date };
-            applications.push(application);
-            localStorage.setItem('applications', JSON.stringify(applications));
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onSubmit({ ...formData, date: new Date().toLocaleString() });
+                setFormData({ name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: '' });
+            };
 
-            // Send to backend for email
-            try {
-                const response = await fetch('http://localhost:3000/send-application', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(application)
-                });
-                if (response.ok) {
-                    alert('Application submitted and emailed successfully!');
-                } else {
-                    alert('Application submitted locally, but email failed. Please try again.');
+            return (
+                <section id="apply" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                    <h2 className="text-2xl font-bold text-blue-900 mb-4">Create Your Profile & Apply</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" id="name" value={formData.name} onChange={handleChange} placeholder="Full Name" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="email" id="email" value={formData.email} onChange={handleChange} placeholder="Email" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="tel" id="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="number" id="age" value={formData.age} onChange={handleChange} placeholder="Age" min="18" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <select id="gender" value={formData.gender} onChange={handleChange} required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80">
+                            <option value="" disabled>Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <textarea id="address" value={formData.address} onChange={handleChange} placeholder="Address" rows="3" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="education" value={formData.education} onChange={handleChange} placeholder="Education Background" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="experience" value={formData.experience} onChange={handleChange} placeholder="Work Experience" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="details" value={formData.details} onChange={handleChange} placeholder="Additional Details (e.g., availability, skills)" rows="4" className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-800 transition-colors">Submit Application</button>
+                    </form>
+                </section>
+            );
+        };
+
+        const SupportForm = () => {
+            const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.id]: e.target.value });
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    const response = await fetch('http://localhost:3000/send-support', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    alert(response.ok ? 'Support message sent successfully!' : 'Message submission failed. Please try again.');
+                } catch (error) {
+                    alert('Message submission failed due to network issue.');
                 }
-            } catch (error) {
-                alert('Application submitted locally, but email failed due to network issue.');
-            }
+                setFormData({ name: '', email: '', message: '' });
+            };
 
-            this.reset();
-            displayOrders();
-        });
+            return (
+                <section id="support" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                    <h2 className="text-2xl font-bold text-blue-900 mb-4">Contact Support</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" id="name" value={formData.name} onChange={handleChange} placeholder="Your Name" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="email" id="email" value={formData.email} onChange={handleChange} placeholder="Your Email" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <textarea id="message" value={formData.message} onChange={handleChange} placeholder="Your Message" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-800 transition-colors">Send Message</button>
+                    </form>
+                    <div className="flex gap-4 mt-4">
+                        <a href="tel:+94761244231" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                            <img src="https://img.icons8.com/color/24/phone.png" alt="Phone Icon" />
+                            +94 76 124 4231
+                        </a>
+                        <a href="https://wa.link/eh4ehx" target="_blank" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                            <img src="https://img.icons8.com/color/24/whatsapp.png" alt="WhatsApp Icon" />
+                            Chat on WhatsApp
+                        </a>
+                    </div>
+                </section>
+            );
+        };
 
-        // Handle support form submission
-        document.getElementById('support-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const name = document.getElementById('support-name').value;
-            const email = document.getElementById('support-email').value;
-            const message = document.getElementById('support-message').value;
+        const OrdersCard = ({ applications }) => (
+            <section id="orders" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">My Active Orders</h2>
+                <div>
+                    {applications.length === 0 ? (
+                        <p>No active applications.</p>
+                    ) : (
+                        applications.map((app, index) => (
+                            <div key={index} className="bg-white/30 p-4 rounded-lg mb-4">
+                                <p><strong>Name:</strong> {app.name}</p>
+                                <p><strong>Email:</strong> {app.email}</p>
+                                <p><strong>Phone:</strong> {app.phone}</p>
+                                <p><strong>Age:</strong> {app.age}</p>
+                                <p><strong>Gender:</strong> {app.gender}</p>
+                                <p><strong>Address:</strong> {app.address}</p>
+                                <p><strong>Education:</strong> {app.education}</p>
+                                <p><strong>Experience:</strong> {app.experience}</p>
+                                <p><strong>Details:</strong> {app.details}</p>
+                                <p><strong>Applied On:</strong> {app.date}</p>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </section>
+        );
 
-            // Send to backend for email
-            try {
-                const response = await fetch('http://localhost:3000/send-support', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, message })
-                });
-                if (response.ok) {
-                    alert('Support message sent successfully!');
-                } else {
-                    alert('Message submission failed. Please try again.');
+        const ReviewsCard = () => (
+            <section id="reviews" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">User Reviews</h2>
+                {[
+                    { name: 'ganga nimashi', text: 'Great opportunity! The application process was smooth, and I started my warehouse job quickly. The team is supportive.', rating: '5/5' },
+                    { name: 'sithum navod', text: 'Reliable platform for finding jobs in Singapore. The night shift fits my schedule perfectly, and the pay is fair.', rating: '4.5/5' },
+                    { name: 'sahani maleesha', text: 'Easy to apply and get updates. The security card fee was transparently handled from my first salary. Highly recommend!', rating: '5/5' }
+                ].map((review, index) => (
+                    <div key={index} className="bg-white/30 p-4 rounded-lg mb-4">
+                        <p><strong>{review.name}:</strong> "{review.text}"</p>
+                        <p>Rating: {review.rating}</p>
+                    </div>
+                ))}
+            </section>
+        );
+
+        const App = () => {
+            const [applications, setApplications] = useState(JSON.parse(localStorage.getItem('applications')) || []);
+
+            useEffect(() => {
+                localStorage.setItem('applications', JSON.stringify(applications));
+            }, [applications]);
+
+            const handleApplicationSubmit = async (application) => {
+                setApplications([...applications, application]);
+                try {
+                    const response = await fetch('http://localhost:3000/send-application', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(application)
+                    });
+                    alert(response.ok ? 'Application submitted and emailed successfully!' : 'Application submitted locally, but email failed. Please try again.');
+                } catch (error) {
+                    alert('Application submitted locally, but email failed due to network issue.');
                 }
-            } catch (error) {
-                alert('Message submission failed due to network issue.');
-            }
+            };
 
-            this.reset();
-        });
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-gray-100 text-gray-800 flex flex-col">
+                    <header className="bg-white/10 backdrop-blur-lg p-6 text-center border-b border-white/20 shadow-lg flex items-center justify-center gap-4">
+                        <img src="https://img.icons8.com/color/48/briefcase.png" alt="JobForSLSG Logo" className="w-12 h-12" />
+                        <h1 className="text-3xl font-bold text-blue-900">JobForSLSG</h1>
+                    </header>
+                    <nav className="flex justify-center gap-8 p-4 bg-white/5">
+                        <NavLink href="#jobs">Jobs</NavLink>
+                        <NavLink href="#apply">Apply</NavLink>
+                        <NavLink href="#support">Support</NavLink>
+                        <NavLink href="#orders">My Orders</NavLink>
+                        <NavLink href="#reviews">Reviews</NavLink>
+                    </nav>
+                    <div className="max-w-5xl mx-auto p-4 flex-1">
+                        <JobCard />
+                        <ApplyForm onSubmit={handleApplicationSubmit} />
+                        <SupportForm />
+                        <OrdersCard applications={applications} />
+                        <ReviewsCard />
+                    </div>
+                    <footer className="text-center p-4 bg-white/10 border-t border-white/20">
+                        <p>&copy; 2025 JobForSLSG. All rights reserved.</p>
+                    </footer>
+                </div>
+            );
+        };
 
-        // Initial display of orders
-        displayOrders();
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
