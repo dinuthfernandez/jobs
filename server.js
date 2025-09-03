@@ -1,18 +1,39 @@
 // server.js
-// Express backend for JobForSLSG with CORS + email sending
+// Express backend for JobForSLSG with CORS + email sending + persistent storage
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ---- In-memory storage for pending orders ----
+// ---- Persistent storage file ----
+const DATA_FILE = path.join(__dirname, 'applications.json');
+
+// Load applications from file if it exists
 let applications = [];
+if (fs.existsSync(DATA_FILE)) {
+  try {
+    const data = fs.readFileSync(DATA_FILE, 'utf-8');
+    applications = JSON.parse(data);
+  } catch (err) {
+    console.error('Failed to load applications.json:', err);
+  }
+}
+
+// Save applications to file (helper function)
+function saveApplications() {
+  try {
+    fs.writeFileSync(DATA_FILE, JSON.stringify(applications, null, 2));
+  } catch (err) {
+    console.error('Failed to save applications.json:', err);
+  }
+}
 
 // --- CORS ---
-// In production, you can restrict origins to your frontend domain(s).
 app.use(cors({
   origin: true, // allow all origins for now
   methods: ['GET', 'POST', 'OPTIONS'],
@@ -28,11 +49,10 @@ app.get('/', (_req, res) => {
 });
 
 // --- Email transport ---
-// Configure SMTP via environment variables on Render dashboard.
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === 'true', // true for port 465
+  secure: process.env.SMTP_SECURE === 'true',
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -62,7 +82,6 @@ app.post('/send-application', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Missing required fields (name, email, phone).' });
     }
 
-    // Save to in-memory list with Pending status
     const application = {
       name,
       email,
@@ -76,7 +95,10 @@ app.post('/send-application', async (req, res) => {
       date: date || new Date().toLocaleString(),
       status: 'Pending',
     };
+
+    // Save in-memory and to file
     applications.push(application);
+    saveApplications();
 
     const subject = `New Job Application from ${name}`;
     const html = `
@@ -137,7 +159,7 @@ app.post('/send-support', async (req, res) => {
   }
 });
 
-// --- New route to get all pending applications ---
+// --- Get all applications ---
 app.get('/applications', (req, res) => {
   res.json({ ok: true, applications });
 });
