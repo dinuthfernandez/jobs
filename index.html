@@ -14,7 +14,6 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // ---- Configure API base URL (prod on Render, dev on localhost) ----
         const PROD_API = "https://jobs-6g3w.onrender.com";
         const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
           ? "http://localhost:3000"
@@ -24,6 +23,13 @@
             <a href={href} className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
                 {children}
             </a>
+        );
+
+        const Notification = ({ message, type, onClose }) => (
+            <div className={`fixed top-4 right-4 px-4 py-2 rounded-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} shadow-lg z-50`}>
+                <span>{message}</span>
+                <button className="ml-4 font-bold" onClick={onClose}>✕</button>
+            </div>
         );
 
         const JobCard = () => (
@@ -43,7 +49,7 @@
             </section>
         );
 
-        const ApplyForm = ({ onSubmit }) => {
+        const ApplyForm = ({ onSubmit, showNotification }) => {
             const [formData, setFormData] = useState({
                 name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: ''
             });
@@ -52,10 +58,15 @@
                 setFormData({ ...formData, [e.target.id]: e.target.value });
             };
 
-            const handleSubmit = (e) => {
+            const handleSubmit = async (e) => {
                 e.preventDefault();
-                onSubmit({ ...formData, date: new Date().toLocaleString() });
-                setFormData({ name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: '' });
+                try {
+                    await onSubmit({ ...formData, date: new Date().toLocaleString() });
+                    showNotification('Application submitted successfully!', 'success');
+                    setFormData({ name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: '' });
+                } catch {
+                    showNotification('Failed to submit application. Try again.', 'error');
+                }
             };
 
             return (
@@ -82,7 +93,7 @@
             );
         };
 
-        const SupportForm = () => {
+        const SupportForm = ({ showNotification }) => {
             const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
             const handleChange = (e) => {
@@ -92,16 +103,17 @@
             const handleSubmit = async (e) => {
                 e.preventDefault();
                 try {
-                    const response = await fetch(\`\${API_BASE}/send-support\`, {
+                    const res = await fetch(`${API_BASE}/send-support`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(formData)
                     });
-                    alert(response.ok ? 'Support message sent successfully!' : 'Message submission failed. Please try again.');
-                } catch (error) {
-                    alert('Message submission failed due to network issue.');
+                    if (res.ok) showNotification('Support message sent successfully!', 'success');
+                    else showNotification('Failed to send support message.', 'error');
+                    setFormData({ name: '', email: '', message: '' });
+                } catch {
+                    showNotification('Network error. Support message not sent.', 'error');
                 }
-                setFormData({ name: '', email: '', message: '' });
             };
 
             return (
@@ -129,7 +141,7 @@
 
         const OrdersCard = ({ applications }) => (
             <section id="orders" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
-                <h2 className="text-2xl font-bold text-blue-900 mb-4">My Active Orders</h2>
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">My Active Applications</h2>
                 <div>
                     {applications.length === 0 ? (
                         <p>No active applications.</p>
@@ -170,24 +182,36 @@
         );
 
         const App = () => {
-            const [applications, setApplications] = useState(JSON.parse(localStorage.getItem('applications')) || []);
+            const [applications, setApplications] = useState([]);
+            const [notification, setNotification] = useState(null);
 
+            const showNotification = (message, type) => {
+                setNotification({ message, type });
+                setTimeout(() => setNotification(null), 5000);
+            };
+
+            // Fetch applications from server on load
             useEffect(() => {
-                localStorage.setItem('applications', JSON.stringify(applications));
-            }, [applications]);
+                const fetchApplications = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/applications`);
+                        const data = await res.json();
+                        if (data.ok) setApplications(data.applications);
+                    } catch (err) {
+                        console.error('Failed to fetch applications:', err);
+                    }
+                };
+                fetchApplications();
+            }, []);
 
             const handleApplicationSubmit = async (application) => {
-                setApplications([...applications, application]);
-                try {
-                    const response = await fetch(\`\${API_BASE}/send-application\`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(application)
-                    });
-                    alert(response.ok ? 'Application submitted and emailed successfully!' : 'Application submitted locally, but email failed. Please try again.');
-                } catch (error) {
-                    alert('Application submitted locally, but email failed due to network issue.');
-                }
+                setApplications(prev => [...prev, application]);
+                const res = await fetch(`${API_BASE}/send-application`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(application)
+                });
+                if (!res.ok) throw new Error('Email send failed');
             };
 
             return (
@@ -205,14 +229,15 @@
                     </nav>
                     <div className="max-w-5xl mx-auto p-4 flex-1">
                         <JobCard />
-                        <ApplyForm onSubmit={handleApplicationSubmit} />
-                        <SupportForm />
+                        <ApplyForm onSubmit={handleApplicationSubmit} showNotification={showNotification} />
+                        <SupportForm showNotification={showNotification} />
                         <OrdersCard applications={applications} />
                         <ReviewsCard />
                     </div>
                     <footer className="text-center p-4 bg-white/10 border-t border-white/20">
                         <p>&copy; 2025 JobForSLSG. All rights reserved.</p>
                     </footer>
+                    {notification && <Notification {...notification} onClose={() => setNotification(null)} />}
                 </div>
             );
         };
