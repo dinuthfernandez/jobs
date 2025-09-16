@@ -802,6 +802,7 @@ def submit_application():
         return jsonify({'success': False, 'error': 'Failed to submit application'}), 500
 
 if __name__ == '__main__':
+    # This block only runs when executing directly (not under gunicorn)
     port = int(os.environ.get('PORT', 5001))
     debug_mode = os.environ.get('FLASK_ENV') != 'production'
     app.run(host='0.0.0.0', port=port, debug=debug_mode)
