@@ -739,54 +739,47 @@ def home():
 def submit_application():
     """Handle form submission and send email"""
     try:
-        from markupsafe import escape
-
-        data = request.json or {}
-
-        # Safely extract and escape all fields
-        name = escape(data.get('name', 'N/A'))
-        email_addr = escape(data.get('email', 'N/A'))
-        phone = escape(data.get('phone', 'N/A'))
-        age = escape(str(data.get('age', 'N/A')))
-        gender = escape(data.get('gender', 'N/A'))
-        nationality = escape(data.get('nationality', 'N/A'))
-        address = escape(data.get('address', 'N/A'))
-        availability = escape(data.get('availability', 'N/A'))
-        experience = escape(data.get('experience', 'No experience provided'))
-
+        data = request.json
+        
+        # Job name for the warehouse position
+        job_name = "🏭 Warehouse Staff (Night Shift)"
+        
         # Create email content
-        subject = f"🎯 New Job Application - JobForSLSG"
-
+        subject = f"🎯 New Job Application - {job_name} - JobForSLSG"
+        
         # Email body with all the details
         body = f"""
         <h2>🎯 New Job Application - JobForSLSG</h2>
         
-        <h3>📋 Applicant Information:</h3>
+        <h3>� Position Applied For:</h3>
+        <p><strong>{job_name}</strong></p>
+        
+        <h3>�📋 Applicant Information:</h3>
         <ul>
-            <li><strong>Name:</strong> {name}</li>
-            <li><strong>Email:</strong> {email_addr}</li>
-            <li><strong>Phone:</strong> {phone}</li>
-            <li><strong>Age:</strong> {age}</li>
-            <li><strong>Gender:</strong> {gender}</li>
-            <li><strong>Nationality:</strong> {nationality}</li>
-            <li><strong>Address:</strong> {address}</li>
-            <li><strong>Availability:</strong> {availability}</li>
+            <li><strong>Name:</strong> {data.get('name', 'N/A')}</li>
+            <li><strong>Email:</strong> {data.get('email', 'N/A')}</li>
+            <li><strong>Phone:</strong> {data.get('phone', 'N/A')}</li>
+            <li><strong>Age:</strong> {data.get('age', 'N/A')}</li>
+            <li><strong>Gender:</strong> {data.get('gender', 'N/A')}</li>
+            <li><strong>Nationality:</strong> {data.get('nationality', 'N/A')}</li>
+            <li><strong>Address:</strong> {data.get('address', 'N/A')}</li>
+            <li><strong>Availability:</strong> {data.get('availability', 'N/A')}</li>
         </ul>
         
         <h3>💼 Work Experience:</h3>
-        <p>{experience}</p>
+        <p>{data.get('experience', 'No experience provided')}</p>
         
         <hr>
         <p><em>Application submitted through JobForSLSG platform</em></p>
         """
-
-        # Send email
-        msg = Message(subject, recipients=['fdodinuth@gmail.com'])
+        
+        # Send email to both recipients
+        msg = Message(subject, recipients=['fdodinuth@gmail.com', 'keshannithina@gmail.com'])
         msg.html = body
         mail.send(msg)
-
+        
         return jsonify({'success': True, 'message': 'Application submitted successfully!'})
-
+        
     except Exception as e:
         print(f"Error: {str(e)}")
         return jsonify({'success': False, 'error': 'Failed to submit application'}), 500
