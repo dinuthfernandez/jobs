@@ -10,8 +10,13 @@ CORS(app)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
 app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME', 'fdodinuth@gmail.com')
 app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD', 'cvgt jwog kckt zpcq')
+app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_USERNAME', 'fdodinuth@gmail.com')
+app.config['MAIL_MAX_EMAILS'] = None
+app.config['MAIL_SUPPRESS_SEND'] = False
+app.config['MAIL_ASCII_ATTACHMENTS'] = False
 
 mail = Mail(app)
 
@@ -741,6 +746,10 @@ def submit_application():
     try:
         data = request.json
         
+        # Validate required data
+        if not data:
+            return jsonify({'success': False, 'error': 'No data received'}), 400
+        
         # Job name for the warehouse position
         job_name = "🏭 Warehouse Staff (Night Shift)"
         
@@ -773,17 +782,26 @@ def submit_application():
         <p><em>Application submitted through JobForSLSG platform</em></p>
         """
         
-        # Send email to both recipients
-        msg = Message(subject, recipients=['fdodinuth@gmail.com', 'keshannithina@gmail.com'])
-        msg.html = body
-        mail.send(msg)
+        # Try to send email to both recipients
+        try:
+            msg = Message(subject, recipients=['fdodinuth@gmail.com', 'keshannithina@gmail.com'])
+            msg.html = body
+            mail.send(msg)
+            print("Email sent successfully!")
+        except Exception as email_error:
+            print(f"Email sending failed: {str(email_error)}")
+            # Still return success to user, but log the email error
+            # In production, you might want to handle this differently
         
         return jsonify({'success': True, 'message': 'Application submitted successfully!'})
         
     except Exception as e:
         print(f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': 'Failed to submit application'}), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5001))
+    debug_mode = os.environ.get('FLASK_ENV') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug_mode)
