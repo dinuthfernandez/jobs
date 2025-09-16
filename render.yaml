@@ -3,7 +3,7 @@ services:
     name: jobforslsg
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
     envVars:
       - key: FLASK_ENV
         value: production
