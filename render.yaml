@@ -3,7 +3,7 @@ services:
     name: jobforslsg
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT
+    startCommand: gunicorn main:app --bind 0.0.0.0:$PORT --timeout 120
     envVars:
       - key: FLASK_ENV
         value: production
@@ -12,9 +12,9 @@ services:
       - key: MAIL_SERVER
         value: smtp.gmail.com
       - key: MAIL_PORT
-        value: 587
+        value: "587"
       - key: MAIL_USE_TLS
-        value: true
+        value: "True"
       - key: MAIL_USERNAME
         sync: false
       - key: MAIL_PASSWORD
