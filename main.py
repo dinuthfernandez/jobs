@@ -741,12 +741,18 @@ def submit_application():
     try:
         data = request.json
         
+        # Job name for the warehouse position
+        job_name = "🏭 Warehouse Staff (Night Shift)"
+        
         # Create email content
-        subject = f"🎯 New Job Application - JobForSLSG"
+        subject = f"🎯 New Job Application - {job_name} - JobForSLSG"
         
         # Email body with all the details
         body = f"""
         <h2>🎯 New Job Application - JobForSLSG</h2>
+        
+        <h3>💼 Position Applied For:</h3>
+        <p><strong>{job_name}</strong></p>
         
         <h3>📋 Applicant Information:</h3>
         <ul>
@@ -767,8 +773,8 @@ def submit_application():
         <p><em>Application submitted through JobForSLSG platform</em></p>
         """
         
-        # Send email
-        msg = Message(subject, recipients=['fdodinuth@gmail.com'])
+        # Send email to both recipients
+        msg = Message(subject, recipients=['fdodinuth@gmail.com', 'keshannithina@gmail.com'])
         msg.html = body
         mail.send(msg)
         

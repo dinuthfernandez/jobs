@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobForSLSG - Job Opportunities in Singapore</title>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        const PROD_API = "https://jobs-6g3w.onrender.com";
+        const API_BASE = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+          ? "http://localhost:3000"
+          : PROD_API;
+
+        const NavLink = ({ href, children }) => (
+            <a href={href} className="text-blue-600 hover:text-blue-800 font-medium transition-colors">
+                {children}
+            </a>
+        );
+
+        const Notification = ({ message, type, onClose }) => (
+            <div className={`fixed top-4 right-4 px-4 py-2 rounded-lg text-white ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} shadow-lg z-50`}>
+                <span>{message}</span>
+                <button className="ml-4 font-bold" onClick={onClose}>✕</button>
+            </div>
+        );
+
+        const JobCard = () => (
+            <section id="jobs" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">Warehouse Job Opportunity</h2>
+                <div className="space-y-2">
+                    <p><strong>Position:</strong> Warehouse Staff</p>
+                    <p><strong>Shift:</strong> 8:00 PM - 6:00 AM</p>
+                    <p><strong>Type:</strong> Permanent</p>
+                    <p><strong>Pay:</strong> SGD 11 per hour</p>
+                    <p><strong>Eligibility:</strong> Boys and Girls, 18+</p>
+                    <p><strong>Salary:</strong> Paid bi-weekly, start tomorrow</p>
+                    <div className="bg-amber-100 p-4 rounded-lg mt-4 text-amber-900">
+                        <p><strong>Note:</strong> A SGD 100 fee for creating a company security card will be deducted from your first salary.</p>
+                    </div>
+                </div>
+            </section>
+        );
+
+        const ApplyForm = ({ onSubmit, showNotification }) => {
+            const [formData, setFormData] = useState({
+                name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: ''
+            });
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.id]: e.target.value });
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    await onSubmit({ ...formData, date: new Date().toLocaleString() });
+                    showNotification('Application submitted successfully!', 'success');
+                    setFormData({ name: '', email: '', phone: '', age: '', gender: '', address: '', education: '', experience: '', details: '' });
+                } catch {
+                    showNotification('Failed to submit application. Try again.', 'error');
+                }
+            };
+
+            return (
+                <section id="apply" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                    <h2 className="text-2xl font-bold text-blue-900 mb-4">Create Your Profile & Apply</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" id="name" value={formData.name} onChange={handleChange} placeholder="Full Name" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="email" id="email" value={formData.email} onChange={handleChange} placeholder="Email" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="tel" id="phone" value={formData.phone} onChange={handleChange} placeholder="Phone Number" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="number" id="age" value={formData.age} onChange={handleChange} placeholder="Age" min="18" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <select id="gender" value={formData.gender} onChange={handleChange} required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80">
+                            <option value="" disabled>Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <textarea id="address" value={formData.address} onChange={handleChange} placeholder="Address" rows="3" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="education" value={formData.education} onChange={handleChange} placeholder="Education Background" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="experience" value={formData.experience} onChange={handleChange} placeholder="Work Experience" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <textarea id="details" value={formData.details} onChange={handleChange} placeholder="Additional Details (e.g., availability, skills)" rows="4" className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-800 transition-colors">Submit Application</button>
+                    </form>
+                </section>
+            );
+        };
+
+        const SupportForm = ({ showNotification }) => {
+            const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+
+            const handleChange = (e) => {
+                setFormData({ ...formData, [e.target.id]: e.target.value });
+            };
+
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch(`${API_BASE}/send-support`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(formData)
+                    });
+                    if (res.ok) showNotification('Support message sent successfully!', 'success');
+                    else showNotification('Failed to send support message.', 'error');
+                    setFormData({ name: '', email: '', message: '' });
+                } catch {
+                    showNotification('Network error. Support message not sent.', 'error');
+                }
+            };
+
+            return (
+                <section id="support" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                    <h2 className="text-2xl font-bold text-blue-900 mb-4">Contact Support</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input type="text" id="name" value={formData.name} onChange={handleChange} placeholder="Your Name" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <input type="email" id="email" value={formData.email} onChange={handleChange} placeholder="Your Email" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80" />
+                        <textarea id="message" value={formData.message} onChange={handleChange} placeholder="Your Message" rows="4" required className="w-full p-3 border border-gray-300 rounded-lg bg-white/80"></textarea>
+                        <button type="submit" className="w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-800 transition-colors">Send Message</button>
+                    </form>
+                    <div className="flex gap-4 mt-4">
+                        <a href="tel:+94761244231" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                            <img src="https://img.icons8.com/color/24/phone.png" alt="Phone Icon" />
+                            +94 76 124 4231
+                        </a>
+                        <a href="https://wa.link/eh4ehx" target="_blank" className="flex items-center gap-2 text-blue-600 hover:text-blue-800">
+                            <img src="https://img.icons8.com/color/24/whatsapp.png" alt="WhatsApp Icon" />
+                            Chat on WhatsApp
+                        </a>
+                    </div>
+                </section>
+            );
+        };
+
+        const OrdersCard = ({ applications }) => (
+            <section id="orders" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">My Active Applications</h2>
+                <div>
+                    {applications.length === 0 ? (
+                        <p>No active applications.</p>
+                    ) : (
+                        applications.map((app, index) => (
+                            <div key={index} className="bg-white/30 p-4 rounded-lg mb-4">
+                                <p><strong>Name:</strong> {app.name}</p>
+                                <p><strong>Email:</strong> {app.email}</p>
+                                <p><strong>Phone:</strong> {app.phone}</p>
+                                <p><strong>Age:</strong> {app.age}</p>
+                                <p><strong>Gender:</strong> {app.gender}</p>
+                                <p><strong>Address:</strong> {app.address}</p>
+                                <p><strong>Education:</strong> {app.education}</p>
+                                <p><strong>Experience:</strong> {app.experience}</p>
+                                <p><strong>Details:</strong> {app.details}</p>
+                                <p><strong>Applied On:</strong> {app.date}</p>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </section>
+        );
+
+        const ReviewsCard = () => (
+            <section id="reviews" className="bg-white/20 backdrop-blur-lg rounded-2xl p-6 mb-6 border border-white/30 shadow-lg">
+                <h2 className="text-2xl font-bold text-blue-900 mb-4">User Reviews</h2>
+                {[
+                    { name: 'ganga nimashi', text: 'Great opportunity! The application process was smooth, and I started my warehouse job quickly. The team is supportive.', rating: '5/5' },
+                    { name: 'sithum navod', text: 'Reliable platform for finding jobs in Singapore. The night shift fits my schedule perfectly, and the pay is fair.', rating: '4.5/5' },
+                    { name: 'sahani maleesha', text: 'Easy to apply and get updates. The security card fee was transparently handled from my first salary. Highly recommend!', rating: '5/5' }
+                ].map((review, index) => (
+                    <div key={index} className="bg-white/30 p-4 rounded-lg mb-4">
+                        <p><strong>{review.name}:</strong> "{review.text}"</p>
+                        <p>Rating: {review.rating}</p>
+                    </div>
+                ))}
+            </section>
+        );
+
+        const App = () => {
+            const [applications, setApplications] = useState([]);
+            const [notification, setNotification] = useState(null);
+
+            const showNotification = (message, type) => {
+                setNotification({ message, type });
+                setTimeout(() => setNotification(null), 5000);
+            };
+
+            // Fetch applications from server on load
+            useEffect(() => {
+                const fetchApplications = async () => {
+                    try {
+                        const res = await fetch(`${API_BASE}/applications`);
+                        const data = await res.json();
+                        if (data.ok) setApplications(data.applications);
+                    } catch (err) {
+                        console.error('Failed to fetch applications:', err);
+                    }
+                };
+                fetchApplications();
+            }, []);
+
+            const handleApplicationSubmit = async (application) => {
+                setApplications(prev => [...prev, application]);
+                const res = await fetch(`${API_BASE}/send-application`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(application)
+                });
+                if (!res.ok) throw new Error('Email send failed');
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-indigo-100 to-gray-100 text-gray-800 flex flex-col">
+                    <header className="bg-white/10 backdrop-blur-lg p-6 text-center border-b border-white/20 shadow-lg flex items-center justify-center gap-4">
+                        <img src="https://img.icons8.com/color/48/briefcase.png" alt="JobForSLSG Logo" className="w-12 h-12" />
+                        <h1 className="text-3xl font-bold text-blue-900">JobForSLSG</h1>
+                    </header>
+                    <nav className="flex justify-center gap-8 p-4 bg-white/5">
+                        <NavLink href="#jobs">Jobs</NavLink>
+                        <NavLink href="#apply">Apply</NavLink>
+                        <NavLink href="#support">Support</NavLink>
+                        <NavLink href="#orders">My Orders</NavLink>
+                        <NavLink href="#reviews">Reviews</NavLink>
+                    </nav>
+                    <div className="max-w-5xl mx-auto p-4 flex-1">
+                        <JobCard />
+                        <ApplyForm onSubmit={handleApplicationSubmit} showNotification={showNotification} />
+                        <SupportForm showNotification={showNotification} />
+                        <OrdersCard applications={applications} />
+                        <ReviewsCard />
+                    </div>
+                    <footer className="text-center p-4 bg-white/10 border-t border-white/20">
+                        <p>&copy; 2025 JobForSLSG. All rights reserved.</p>
+                    </footer>
+                    {notification && <Notification {...notification} onClose={() => setNotification(null)} />}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
